@@ -15,7 +15,7 @@ export class DeadStateSubject implements GameEventDataObserver {
     
     private observers = new Set<StateChangeObserver>();
     private notifyObservers(): void {
-        this.observers.forEach(observer => observer.onStateChange(!this.isAlive));
+        this.observers.forEach(observer => observer.onStateChange(this.isAlive));
     }
     addObserver(observer: StateChangeObserver): void {
         this.observers.add(observer);

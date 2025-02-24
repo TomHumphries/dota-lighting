@@ -12,6 +12,7 @@ import { DeadStateSubject } from "./states/DeadState";
 import { GameEventDataSubject } from "./states/GameStateSubject";
 import { NighttimeStateObserber } from "./states/NightState";
 import { HomeAssistantClient } from "./lighting/HomeAssistantClient";
+import { RespawnLighting } from "./lighting/RespawnLighting";
 
 dotenv.config({ path: path.join(__dirname, "../.env") });
 
@@ -45,6 +46,9 @@ lightingManager.addLightingEffect(nightLighting);
 const deathLighting = new DeathLighting(configuredLights, homeAssistantClient);
 lightingManager.addLightingEffect(deathLighting);
 
+const respawnLighting = new RespawnLighting(configuredLights, homeAssistantClient);
+lightingManager.addLightingEffect(respawnLighting);
+
 // set up state observers
 const daytimeStateObserver = new DaytimeStateObserver();
 const nighttimeStateObserver = new NighttimeStateObserber();
@@ -59,3 +63,4 @@ gameStateSubject.addObserver(deadStateSubject);
 daytimeStateObserver.addObserver(dayLighting);
 nighttimeStateObserver.addObserver(nightLighting);
 deadStateSubject.addObserver(deathLighting);
+deadStateSubject.addObserver(respawnLighting);

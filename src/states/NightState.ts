@@ -1,29 +1,31 @@
-import { IState } from './IState';
+import { GameEventDataObserver } from './GameStateSubject';
+import { StateChangeObserver, StateChangeSubject } from './StateChangeObserver';
 
-export class NightState implements IState {
-    public readonly priority: number = 1;
-    public active: boolean = false;
-    private changeCallback?: () => void;
+export class NighttimeStateObserber implements GameEventDataObserver, StateChangeSubject {
+    private isNighttime: boolean = true;
+    private observers = new Set<StateChangeObserver>();
 
-    private intervalId?: NodeJS.Timeout;
-    private isNight: boolean = false;
-
-    constructor() {
-        console.log(`Creating NightState with priority ${this.priority}`);
-        this.intervalId = setInterval(() => this.cycle(), 3000);
+    notifyObservers(): void {
+        this.observers.forEach(observer => observer.onStateChange(this.isNighttime));
+    }
+    addObserver(observer: StateChangeObserver): void {
+        this.observers.add(observer);
+    }
+    removeObserver(observer: StateChangeObserver): void {
+        this.observers.delete(observer);
     }
 
-    setChangeCallback(callback: () => void): void {
-        this.changeCallback = callback;
-    }
+    update(gameState: any): void {
+        if (!gameState.map) return;
 
-    applyState(): void {
-        console.log(`Applying night effect`);
-    }
+        const isDaytime = gameState.map.daytime;
+        if (typeof isDaytime !== 'boolean') return;
+        
+        const isNighttime = !isDaytime;
+        const stateChanged = this.isNighttime !== isNighttime;
+        if (!stateChanged) return;
 
-    private cycle(): void {
-        this.isNight = !this.isNight;
-        this.active = this.isNight;
-        if (this.changeCallback) this.changeCallback();
+        this.isNighttime = isNighttime;
+        this.notifyObservers();
     }
 }

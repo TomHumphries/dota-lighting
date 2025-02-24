@@ -1,9 +1,61 @@
-import { ActiveStateManager } from "./StateManager";
-import { DayState } from "./states/DayState";
-import { DeadState } from "./states/DeadState";
-import { NightState } from "./states/NightState";
+import express, { json } from "express";
+import dotenv from "dotenv";
+import path from "path";
 
-const stateManager = new ActiveStateManager();
-stateManager.addState(new DayState());
-stateManager.addState(new NightState());
-stateManager.addState(new DeadState());
+import { DayLighting } from "./lighting/DayLighting";
+import { DeathLighting } from "./lighting/DeathLighting";
+import { ILightingSettings, initLightingSettingsFromEnv } from "./lighting/ILighting";
+import { LightingManager } from "./lighting/LightingManager";
+import { NightLighting } from "./lighting/NightLighting";
+import { DaytimeStateObserver } from "./states/DayState";
+import { DeadStateSubject } from "./states/DeadState";
+import { GameEventDataSubject } from "./states/GameStateSubject";
+import { NighttimeStateObserber } from "./states/NightState";
+import { HomeAssistantClient } from "./lighting/HomeAssistantClient";
+
+dotenv.config({ path: path.join(__dirname, "../.env") });
+
+const app = express();
+app.use(express.json());
+
+const gameStateSubject = new GameEventDataSubject();
+
+app.post("/dota-gsi", json(), (req, res) => {
+    gameStateSubject.notify(req.body);
+    res.send({})
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`Server listening for Game State Integration messages on port ${PORT}`);
+});
+
+const lightingManager = new LightingManager();
+const homeAssistantClient = HomeAssistantClient.initialiseFromEnv();
+
+const configuredLights: ILightingSettings = initLightingSettingsFromEnv();
+
+// init the different lighting effects
+const dayLighting = new DayLighting(configuredLights, homeAssistantClient);
+lightingManager.addLightingEffect(dayLighting);
+
+const nightLighting = new NightLighting(configuredLights, homeAssistantClient);
+lightingManager.addLightingEffect(nightLighting);
+
+const deathLighting = new DeathLighting(configuredLights, homeAssistantClient);
+lightingManager.addLightingEffect(deathLighting);
+
+// set up state observers
+const daytimeStateObserver = new DaytimeStateObserver();
+const nighttimeStateObserver = new NighttimeStateObserber();
+const deadStateSubject = new DeadStateSubject();
+
+// connect game-state observers to the game-state subject
+gameStateSubject.addObserver(daytimeStateObserver);
+gameStateSubject.addObserver(nighttimeStateObserver);
+gameStateSubject.addObserver(deadStateSubject);
+
+// connect the lighting effects to the game-states
+daytimeStateObserver.addObserver(dayLighting);
+nighttimeStateObserver.addObserver(nightLighting);
+deadStateSubject.addObserver(deathLighting);

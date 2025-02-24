@@ -1,7 +1,7 @@
 import { GameEventDataObserver } from './GameStateSubject';
 import { StateChangeObserver } from './StateChangeObserver';
 
-export class DeadStateSubject implements GameEventDataObserver {
+export class AliveState implements GameEventDataObserver {
     
     private isAlive: boolean = false;
 
@@ -15,7 +15,7 @@ export class DeadStateSubject implements GameEventDataObserver {
     
     private observers = new Set<StateChangeObserver>();
     private notifyObservers(): void {
-        this.observers.forEach(observer => observer.onStateChange(!this.isAlive));
+        this.observers.forEach(observer => observer.onStateChange(this.isAlive));
     }
     addObserver(observer: StateChangeObserver): void {
         this.observers.add(observer);

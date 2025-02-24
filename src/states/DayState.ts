@@ -1,29 +1,27 @@
-import { IState } from './IState';
+import { GameEventDataObserver } from './GameStateSubject';
+import { StateChangeObserver } from './StateChangeObserver';
 
-export class DayState implements IState {
-    public readonly priority: number = 1;
-    public active: boolean = false;
-    private changeCallback?: () => void;
+export class DaytimeStateObserver implements GameEventDataObserver {
+    private isDaytime: boolean = false;
+    private observers = new Set<StateChangeObserver>();
 
-    private intervalId?: NodeJS.Timeout;
-    private isDay: boolean = true;
-    
-    setChangeCallback(callback: () => void): void {
-        this.changeCallback = callback;
+    private notifyObservers(): void {
+        this.observers.forEach(observer => observer.onStateChange(this.isDaytime));
     }
-    constructor() {
-        console.log(`Creating DayState with priority ${this.priority}`);
-        this.intervalId = setInterval(() => this.cycle(), 3000);
+    addObserver(observer: StateChangeObserver): void {
+        this.observers.add(observer);
     }
 
-    applyState(): void {
-        console.log(`Applying day effect`);
-    }
+    update(gameState: any): void {
+        if (!gameState.map) return;
 
-    private cycle(): void {
-        this.isDay = !this.isDay;
-        this.active = this.isDay;
-        if (this.changeCallback) this.changeCallback();
-    }
+        const isDaytime = gameState.map.daytime;
+        if (typeof isDaytime !== 'boolean') return;
 
+        const stateChanged = this.isDaytime !== isDaytime;
+        if (!stateChanged) return;
+
+        this.isDaytime = isDaytime;
+        this.notifyObservers();
+    }
 }

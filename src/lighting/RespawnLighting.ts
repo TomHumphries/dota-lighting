@@ -1,8 +1,8 @@
-import { StateChangeObserver } from "../states/StateChangeObserver";
+import { GameStateObserver } from "../GameStateSubject";
 import { HomeAssistantClient } from "./HomeAssistantClient";
 import { ILightingEffect, ILightingSettings } from "./ILighting";
 
-export class RespawnLighting implements ILightingEffect, StateChangeObserver {
+export class RespawnLighting implements ILightingEffect, GameStateObserver {
     readonly priority: number = 3;
 
     public _active: boolean = false;
@@ -15,9 +15,12 @@ export class RespawnLighting implements ILightingEffect, StateChangeObserver {
         private homeAssistantClient: HomeAssistantClient,
     ) {}
 
-    onStateChange(isAlive: boolean): void {
-        if (!isAlive) return;
-        this._active = true;
+    private isAlive: boolean = false;
+    update(gameState: any): void {
+        const isAlive = gameState?.hero?.alive;
+        
+        if (isAlive === this.isAlive) return;
+        this._active = this.isAlive;
         if (this.changeCallback) this.changeCallback();
         setTimeout(() => {
             this._active = false;

@@ -1,8 +1,8 @@
-import { StateChangeObserver } from "../states/StateChangeObserver";
+import { GameStateObserver } from "../GameStateSubject";
 import { HomeAssistantClient } from "./HomeAssistantClient";
 import { ILightingEffect, ILightingSettings } from "./ILighting";
 
-export class NightLighting implements ILightingEffect, StateChangeObserver {
+export class NightLighting implements ILightingEffect, GameStateObserver {
     readonly priority: number = 1;
 
     public _active: boolean = true;
@@ -10,14 +10,25 @@ export class NightLighting implements ILightingEffect, StateChangeObserver {
         return this._active;
     }
 
+    private isNighttime: boolean = false;
+
     constructor(
         private settings: ILightingSettings, 
         private homeAssistantClient: HomeAssistantClient,
     ) {}
 
-    onStateChange(isActive: boolean): void {
-        this._active = isActive;
-        if (this.changeCallback) this.changeCallback();}
+    update(gameState: any): void {
+        const isDaytime = gameState?.map?.daytime;
+        const isNighttime = !isDaytime;
+
+        const changed = this.isNighttime !== isNighttime;
+        this.isNighttime = isNighttime;
+        this._active = isNighttime;
+
+        if (!changed) return;
+        if (this.changeCallback) this.changeCallback();
+
+    }
 
     private changeCallback?: () => void;
     setChangeCallback(callback: () => void): void {

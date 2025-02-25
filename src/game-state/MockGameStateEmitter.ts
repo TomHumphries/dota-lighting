@@ -19,7 +19,7 @@ export class MockGameStateEmitter {
         setInterval(() => {
             this.gameState.map.daytime = !this.gameState.map.daytime;
             this.gameStateSubject.notify(this.gameState);
-        }, 5000);
+        }, 10000);
         this.startRandomLife();
     }
 

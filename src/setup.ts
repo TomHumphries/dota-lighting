@@ -20,8 +20,8 @@ app.use(express.json());
 
 let gameStateSubject: GameStateSubject = new GameStateSubject();
 
-if (process.env.use_mock_game_state === "true") {
-    new MockGameStateEmitter(gameStateSubject);
+if (process.env.use_mock_game_state == "true") {
+    new MockGameStateEmitter(gameStateSubject).start();
 }
 
 app.post("/dota-gsi", (req, res) => {
@@ -56,3 +56,4 @@ lightingManager.addLightingEffect(respawnLighting);
 gameStateSubject.addObserver(dayLighting);
 gameStateSubject.addObserver(nightLighting);
 gameStateSubject.addObserver(deathLighting);
+gameStateSubject.addObserver(respawnLighting);

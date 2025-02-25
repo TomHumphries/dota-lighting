@@ -18,14 +18,18 @@ export class RespawnLighting implements ILightingEffect, GameStateObserver {
     private isAlive: boolean = false;
     update(gameState: any): void {
         const isAlive = gameState?.hero?.alive;
+        if (isAlive === undefined) return;
         
-        if (isAlive === this.isAlive) return;
+        const changed = isAlive !== this.isAlive;
+        this.isAlive = isAlive;
         this._active = this.isAlive;
+        if (!changed) return;
+        
         if (this.changeCallback) this.changeCallback();
         setTimeout(() => {
             this._active = false;
             if (this.changeCallback) this.changeCallback();
-        }, 5000);
+        }, 3000);
     }
 
     private changeCallback?: () => void;
@@ -37,7 +41,7 @@ export class RespawnLighting implements ILightingEffect, GameStateObserver {
         const promises = this.settings.lightIds.map(lightId => 
             this.homeAssistantClient.setLightingState(lightId, {
                 'brightness_pct': 100,
-                'rgb_color': [255, 215, 0], // Gold color
+                'rgb_color': [255, 215, 0], // gold-ish
             })
         );
         await Promise.all(promises);

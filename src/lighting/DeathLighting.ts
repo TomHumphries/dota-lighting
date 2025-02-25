@@ -19,6 +19,7 @@ export class DeathLighting implements ILightingEffect, GameStateObserver {
 
     update(gameState: any): void {
         const isAlive = gameState?.hero?.alive;
+        if (isAlive === undefined) return;
 
         const changed = this.isAlive !== isAlive;
         this.isAlive = isAlive;

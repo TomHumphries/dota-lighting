@@ -29,7 +29,7 @@ export class LightingManager {
         }
 
         if (highestState && highestState !== this.activeEffect) {
-            console.log('Applying new lighting effect');
+            console.log(`Applying new lighting effect: ${highestState.constructor.name}`);
             highestState.applyLighting();
         }
 

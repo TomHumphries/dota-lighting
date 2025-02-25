@@ -1,4 +1,4 @@
-import { GameStateObserver } from "../GameStateSubject";
+import { GameStateObserver } from "../game-state/GameStateSubject";
 import { HomeAssistantClient } from "./HomeAssistantClient";
 import { ILightingEffect, ILightingSettings } from "./ILighting";
 

@@ -1,4 +1,4 @@
-import express, { json } from "express";
+import express from "express";
 import dotenv from "dotenv";
 import path from "path";
 
@@ -10,17 +10,19 @@ import { LightingManager } from "./lighting/LightingManager";
 import { ILightingSettings, initLightingSettingsFromEnv } from "./lighting/ILighting";
 
 import { HomeAssistantClient } from "./lighting/HomeAssistantClient";
-import { MockGameStateSubject } from "./MockGameStateSubject";
-import { GameStateSubject } from "./GameStateSubject";
+import { MockGameStateEmitter } from "./game-state/MockGameStateEmitter";
+import { GameStateSubject } from "./game-state/GameStateSubject";
 
 dotenv.config({ path: path.join(__dirname, "../.env") });
 
 const app = express();
 app.use(express.json());
 
-// const gameStateSubject = new GameStateSubject();
-const gameStateSubject = new MockGameStateSubject();
-gameStateSubject.start();
+let gameStateSubject: GameStateSubject = new GameStateSubject();
+
+if (process.env.use_mock_game_state === "true") {
+    new MockGameStateEmitter(gameStateSubject);
+}
 
 app.post("/dota-gsi", (req, res) => {
     gameStateSubject.notify(req.body);

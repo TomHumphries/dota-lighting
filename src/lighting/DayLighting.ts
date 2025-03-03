@@ -18,7 +18,7 @@ export class DayLighting implements ILightingEffect, GameStateObserver {
     ) {}
     
     update(gameState: any): void {
-        const isDaytime = gameState.map.daytime;
+        const isDaytime = gameState?.map?.daytime;
 
         const changed = this.isDaytime !== isDaytime;
         this.isDaytime = isDaytime;
